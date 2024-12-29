@@ -1,28 +1,37 @@
-import json
-from django.shortcuts import render
-from user.models import User
-from django.forms.models import model_to_dict
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from user.serializers import UserSerializer
+from rest_framework import generics
+from user.models import *
+from user.serializers import *
 
 
-# Create your views here.
-@api_view(['POST'])
-def api_home(request, *args, **kwargs):
-    """
-    DRF api view for users model
-    get random user data
-    """ 
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid(raise_exception=True):
-        # print(serializer.data)
-        # data = serializer.validated_data
-        serializer.save()
-        return Response(serializer.validated_data)
-    # data = request.data
-    # instance = User.objects.all().order_by('?').first()
-    # data = {}
-    # if instance:
-    #     data = UserSerializer(instance).data
-    return Response({'error': 'Invalid data'}, status=400)
+class UserDetail(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+class UserListCreate(generics.ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        ref_code = self.kwargs.get('ref_code')
+        ref = self.request.content_params
+        print(ref)
+        if ref_code:
+            user = User.objects.filter(profile__code__iexact=ref_code)
+            return user if user.exists() else User.objects.all()
+        
+        return User.objects.all()
+
+    
+    def perform_create(self, serializer):
+        user = serializer.save()
+        user.set_password(user.password)
+        user.save()
+
+class ProfileView(generics.RetrieveAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = UserProfileSerializer
+
+class ProfileList(generics.ListAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = UserProfileSerializer
+    

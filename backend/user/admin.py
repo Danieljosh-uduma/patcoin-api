@@ -3,6 +3,6 @@ from .models import *
 
 # Register your models here.
 admin.site.register(User)
-admin.site.register(ReferralCode)
-admin.site.register(ReferralRelationship)
-admin.site.register(UserReferral)
+# admin.site.register(ReferralCode)
+# admin.site.register(ReferralRelationship)
+admin.site.register(Profile)
