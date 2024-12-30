@@ -4,22 +4,30 @@ from django.db.models.signals import post_save, pre_save
 from .models import User, Profile
 import uuid
 
-@receiver(pre_save, sender=User)
-def check_valid_recommendation_code(sender, instance, *args, **kwargs):
-    user = instance
 
+
+@receiver(post_save, sender=User)
+# Signal to create a referral token for a new user upon saving
+def create_user_refferal_token(sender, instance, created, *args, **kwargs):
+    """
+    Signal handler to create a referral token for a new user upon creation.
+    Args:
+        sender (Model): The model class that sent the signal.
+        instance (User): The actual instance being saved.
+        created (bool): A boolean indicating whether a new record was created.
+        *args: Variable length argument list.
+        **kwargs: Arbitrary keyword arguments.
+    Returns:
+        None
+    """
+    
+    user = instance
     try:
-        ref = user.recommended_by
+        ref = user.referral_code
         obj = Profile.objects.get(code__iexact=ref)
         obj = User.objects.get(username=obj)
     except:
         obj = None
-
-    user.recommended_by = obj
-
-@receiver(post_save, sender=User)
-def create_user_refferal_token(sender, instance, created, *args, **kwargs):
-    user = instance
 
     if created:
         num = str(uuid.uuid4())
@@ -27,5 +35,5 @@ def create_user_refferal_token(sender, instance, created, *args, **kwargs):
         Profile.objects.create(
             user=user, 
             code=token,
-            recommended_by=user.recommended_by
+            recommended_by=obj
         )
