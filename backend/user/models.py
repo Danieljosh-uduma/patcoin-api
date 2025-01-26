@@ -46,9 +46,19 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     code = models.CharField(max_length=150)
     recommended_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='ref_by')
+    referred = models.ManyToManyField(User, blank=True, related_name='referrers', through='Referral')
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f'{self.user}'
+    
+class Referral(models.Model):
+    referrer = models.ForeignKey(Profile, related_name='referrer', on_delete=models.CASCADE)
+    referred = models.ForeignKey(User, related_name='referred', on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f'{self.referrer} referred {self.referred}'
+    
 
